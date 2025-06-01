@@ -2,15 +2,10 @@ from __future__ import annotations
 from re import *
 
 class Site:
-	def __init__(self, smallUrl: str, title: str, parent: Site):
+	def __init__(self, smallUrl: str, title: str):
 		self.url: str = smallUrl
 		self.title: str = title
 		self.parents: set[Site] = set()
-
-		if parent != None and type(parent) == Site:
-			self.parents.add(parent)
-		else:
-			self.parents = None
 
 	def __eq__(self, value) -> bool:
 		if (type(value) not in (Site, str)):
