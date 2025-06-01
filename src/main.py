@@ -1,5 +1,5 @@
-
 from requests import get
+from json import *
 
 from RequestMaker import *
 from HTMLParser import *
@@ -17,7 +17,6 @@ if __name__ == '__main__':
 	TO_VISIT.add(FIRST_URL)
 
 	limit: int = 1000
-	lastUrl: Site = None
 
 	run = len(VISITED) < limit and len(TO_VISIT) > 0
 
@@ -44,3 +43,7 @@ if __name__ == '__main__':
 		print(smallUrl)
 
 		run = len(VISITED) < limit and len(TO_VISIT) > 0
+
+	fp = open(FIRST_URL+".json", "w")
+	fp.write(dumps(SUIVANTS, indent=4))
+	fp.close()
