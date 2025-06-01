@@ -32,9 +32,10 @@ def getValidURLs(html: str) -> set[str]:
 		isValid: bool = href.startswith("/wiki/") and not (":" in href)
 
 		if not isValid:
-			href = href.split("#")[0]
 			invalidHrefs.add(href)
 
 	hrefs.difference_update(invalidHrefs)
+
+	hrefs = {href.split("#")[0] for href in hrefs}
 
 	return hrefs
