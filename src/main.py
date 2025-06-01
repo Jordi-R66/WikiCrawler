@@ -55,7 +55,7 @@ if __name__ == '__main__':
 			TO_VISIT.update(hrefs)
 			TO_VISIT.difference_update(VISITED)
 
-			print(smallUrl)
+			#print(smallUrl)
 
 			run = len(VISITED) < limit and len(TO_VISIT) > 0
 	except Exception as e:
