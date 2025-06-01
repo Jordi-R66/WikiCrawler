@@ -66,7 +66,7 @@ if __name__ == '__main__':
 		ALL_URLS.update(TO_VISIT)
 		ALL_URLS.update(VISITED)
 
-		print(f"{len(ALL_URLS)} découverts en {stop-start:.3} secondes\n")
+		print(f"{len(ALL_URLS)} découvertes en {stop-start:.3} secondes\n")
 
 		for k in SUIVANTS:
 			SUIVANTS[k] = list(SUIVANTS[k])
