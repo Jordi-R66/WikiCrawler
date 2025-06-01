@@ -58,8 +58,8 @@ if __name__ == '__main__':
 			print(smallUrl)
 
 			run = len(VISITED) < limit and len(TO_VISIT) > 0
-	except:
-		print("Erreur survenue")
+	except Exception as e:
+		print(e)
 	finally:
 		stop = time()
 
