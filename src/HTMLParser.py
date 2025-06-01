@@ -13,10 +13,13 @@ class Site:
 			self.parents = None
 
 	def __eq__(self, value) -> bool:
-		if (type(value) != Site):
+		if (type(value) not in (Site, str)):
 			raise ValueError("Can't compare Site to non-Site objects")
 		else:
-			return self.url == value.url
+			if (type(value) == Site):
+				return self.url == value.url
+			else:
+				return self.url == value
 
 def getTitle(html: str) -> str:
 	correspondance: list[str] = findall(r'<title[^>]*>(.*?)</title>', html, IGNORECASE | DOTALL)
