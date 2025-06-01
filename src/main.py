@@ -4,11 +4,15 @@ from json import *
 from RequestMaker import *
 from HTMLParser import *
 
+from time import time
+
 BASE_URL: str = "https://fr.wikipedia.org"
 FIRST_URL: str = "/wiki/Sc%C3%A8ne_(cin%C3%A9ma)"
+FIRST_TITLE: str = ""
 
 VISITED: set[str] = set()
 TO_VISIT: set[str] = set()
+ALL_URLS: set[str] = set()
 
 CORRESPONDANCE: dict[str: Site] = {}
 SUIVANTS: dict[str: set[str]] = {}
@@ -16,34 +20,57 @@ SUIVANTS: dict[str: set[str]] = {}
 if __name__ == '__main__':
 	TO_VISIT.add(FIRST_URL)
 
+	start, stop = 0.0, 0.0
 	limit: int = 1000
 
 	run = len(VISITED) < limit and len(TO_VISIT) > 0
 
-	while run:
-		smallUrl: str = TO_VISIT.pop()
-		VISITED.add(smallUrl)
+	try:
+		start = time()
+		while run:
+			smallUrl: str = TO_VISIT.pop()
 
-		url = f"{BASE_URL}{smallUrl}"
+			url = f"{BASE_URL}{smallUrl}"
 
-		r = get(url)
-		html = r.text
+			r = get(url)
 
-		title: str = getTitle(html)
-		hrefs: set[str] = getValidURLs(html)
+			if (r.status_code != 200):
+				raise Exception(f"Couldn't get {smallUrl}")
+			else:
+				VISITED.add(smallUrl)
 
-		currentSite: Site = Site(smallUrl, title)
+			html = r.text
 
-		CORRESPONDANCE[smallUrl] = currentSite
-		SUIVANTS[smallUrl] = set(hrefs)
+			title: str = getTitle(html)
+			hrefs: set[str] = getValidURLs(html)
 
-		TO_VISIT.update(hrefs)
-		TO_VISIT.difference_update(VISITED)
+			if (smallUrl == FIRST_URL):
+				FIRST_TITLE = title
 
-		print(smallUrl)
+			currentSite: Site = Site(smallUrl, title)
 
-		run = len(VISITED) < limit and len(TO_VISIT) > 0
+			CORRESPONDANCE[smallUrl] = currentSite
+			SUIVANTS[smallUrl] = set(hrefs)
 
-	fp = open(FIRST_URL+".json", "w")
-	fp.write(dumps(SUIVANTS, indent=4))
-	fp.close()
+			TO_VISIT.update(hrefs)
+			TO_VISIT.difference_update(VISITED)
+
+			print(smallUrl)
+
+			run = len(VISITED) < limit and len(TO_VISIT) > 0
+	except:
+		print("Erreur survenue")
+	finally:
+		stop = time()
+
+		ALL_URLS.update(TO_VISIT)
+		ALL_URLS.update(VISITED)
+
+		print(f"{len(ALL_URLS)} découverts en {stop-start:.3} secondes\n")
+
+		for k in SUIVANTS:
+			SUIVANTS[k] = list(SUIVANTS[k])
+
+		fp = open(FIRST_TITLE+".json", "w")
+		fp.write(dumps(SUIVANTS, indent=4))
+		fp.close()
