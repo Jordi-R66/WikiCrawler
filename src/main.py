@@ -7,7 +7,7 @@ from HTMLParser import *
 from time import time
 
 BASE_URL: str = "https://fr.wikipedia.org"
-FIRST_URL: str = "/wiki/Sc%C3%A8ne_(cin%C3%A9ma)"
+FIRST_URL: str = "https://fr.wikipedia.org/wiki/Universit%C3%A9_de_Montpellier".replace(BASE_URL, "")
 FIRST_TITLE: str = ""
 
 VISITED: set[str] = set()
@@ -66,7 +66,7 @@ if __name__ == '__main__':
 		ALL_URLS.update(TO_VISIT)
 		ALL_URLS.update(VISITED)
 
-		print(f"{len(ALL_URLS)} découvertes en {stop-start:.3} secondes\n")
+		print(f"{len(ALL_URLS)} découvertes en {stop-start:.5} secondes\n")
 
 		for k in SUIVANTS:
 			SUIVANTS[k] = list(SUIVANTS[k])
