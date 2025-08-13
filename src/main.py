@@ -1,7 +1,6 @@
 from requests import get
 from json import *
 
-from RequestMaker import *
 from HTMLParser import *
 
 from time import time
