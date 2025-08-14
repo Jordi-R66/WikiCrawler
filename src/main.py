@@ -1,13 +1,17 @@
 from requests import get
+from api import read_config, sendMsg
 from json import *
 
 from HTMLParser import *
 
-from time import time
+from time import *
 
 BASE_URL: str = "https://fr.wikipedia.org"
-FIRST_URL: str = "/wiki/Montesquieu-des-Albères".replace(BASE_URL, "")
+FIRST_URL: str = "/wiki/Langues_en_Europe".replace(BASE_URL, "")
 FIRST_TITLE: str = ""
+
+CARTO: bool = False
+EXTRAC: bool = True
 
 VISITED: set[str] = set()
 TO_VISIT: set[str] = set()
@@ -17,17 +21,24 @@ CORRESPONDANCE: dict[str: Site] = {}
 SUIVANTS: dict[str: set[str]] = {}
 
 phrases: set[str] = set()
+corpus: None = None
 
-corpus = open("corpus.txt", "w")
+chars_lim: int = 1_000_000_000
+chars_count = 0
 
+if EXTRAC:
+	corpus = open("corpus.txt", "w")
 
 if __name__ == '__main__':
 	TO_VISIT.add(FIRST_URL)
 
 	start, stop = 0.0, 0.0
-	limit: int = 500
+	limit: int = 65536
 
-	run = len(VISITED) < limit and len(TO_VISIT) > 0
+	#run = len(VISITED) < limit and len(TO_VISIT) > 0
+	run: bool = chars_count < chars_lim and len(TO_VISIT) > 0
+
+	read_config("tokens")
 
 	try:
 		start = time()
@@ -37,7 +48,7 @@ if __name__ == '__main__':
 			url = f"{BASE_URL}{smallUrl}"
 
 			r = get(url)
-			print(url, f"\n{"-"*len(url)}")
+			#print(url, f"\n{"-"*len(url)}")
 
 			if (r.status_code != 200):
 				raise Exception(f"Couldn't get {smallUrl}")
@@ -49,12 +60,15 @@ if __name__ == '__main__':
 			title: str = getTitle(html)
 
 			hrefs: set[str] = getValidURLs(html)
-			phrases.update(set(getValidSentences(html)))
 
-			for p in phrases:
-				corpus.write(f"{p}\n")
+			if EXTRAC:
+				phrases.update(set(getValidSentences(html)))
 
-			phrases.clear()
+				for p in phrases:
+					corpus.write(f"{p}\n")
+					chars_count += len(p)
+
+				phrases.clear()
 
 			if (smallUrl == FIRST_URL):
 				FIRST_TITLE = title
@@ -67,22 +81,28 @@ if __name__ == '__main__':
 			TO_VISIT.update(hrefs)
 			TO_VISIT.difference_update(VISITED)
 
-			run = len(VISITED) < limit and len(TO_VISIT) > 0
+			#run = len(VISITED) < limit and len(TO_VISIT) > 0
+			run = chars_count < chars_lim and len(TO_VISIT) > 0
 	except Exception as e:
 		print(e)
 	finally:
 		stop = time()
 
+		if EXTRAC:
+			corpus.close()
+
 		ALL_URLS.update(TO_VISIT)
 		ALL_URLS.update(VISITED)
 
-		print(f"{len(ALL_URLS)-1} découvertes en {stop-start} secondes\n")
+		output_str: str = f"[{strftime("%d-%m-%Y %H:%M:%S", localtime(stop))}]\n{len(ALL_URLS)-1} découvertes en {stop-start} secondes\n"
+
+		print(output_str)
+		sendMsg(output_str)
 
 		for k in SUIVANTS:
 			SUIVANTS[k] = list(SUIVANTS[k])
 
-		fp = open(FIRST_TITLE+".json", "w")
-		fp.write(dumps(SUIVANTS, indent=4))
-		fp.close()
-
-		corpus.close()
+		if CARTO:
+			fp = open(FIRST_TITLE+".json", "w")
+			fp.write(dumps(SUIVANTS, indent=4))
+			fp.close()
