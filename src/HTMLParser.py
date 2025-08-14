@@ -66,6 +66,8 @@ def getValidSentences(html: str) -> list[str]:
 		navbox_container.decompose()
 	for li in soup.find_all('li'):
 		li.decompose()
+	for table in soup.find_all('table'):
+		table.decompose()
 	for sup in soup.find_all('sup'):  # Supprime les références [1], [note 1]
 		sup.decompose()
 	for span in soup.find_all('span', class_=lambda c: c and ('reference' in c or 'mw-editsection' in c)):
@@ -112,12 +114,14 @@ def getValidSentences(html: str) -> list[str]:
 		if b.strip()
 	]
 
-	# 9️⃣ Filtrer les phrases trop courtes ou non pertinentes
-	phrases = [
-		p for p in blocs_texte
-		if len(p.split()) > 3  # Au moins 4 mots
-		and not p.startswith(('Voir aussi', 'Notes et références', 'Liens externes'))  # Exclure les sections spéciales
-	]
+	phrases = []
+	for bloc in blocs_texte:
+		# Découper le bloc en phrases (sur .!?)
+		phrases_bloc = [
+			p.strip() for p in split(r'(?<=[.!?])\s+', bloc)
+			if p.strip() and len(p.split()) > 2  # Filtrer les phrases trop courtes
+		]
+		phrases.extend(phrases_bloc)
 
 	#fp = open("page.html", "w")
 	#fp.write(soup.prettify())
